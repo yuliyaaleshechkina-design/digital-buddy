@@ -225,6 +225,81 @@
             });
         }
         
+        // Тест 9: Создание задач
+        function testTaskCreation() {
+            test('Создание и сохранение задач', () => {
+                const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+                const initialCount = tasks.length;
+                
+                const task = {
+                    id: 'T-TEST-' + Date.now(),
+                    newcomer_id: 'TEST-001',
+                    title: 'Тестовая задача',
+                    description: 'Описание тестовой задачи',
+                    priority: 'medium',
+                    status: 'not_started',
+                    due_date: '2026-04-30'
+                };
+                
+                tasks.push(task);
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                
+                const updated = JSON.parse(localStorage.getItem('tasks'));
+                assert(updated.length === initialCount + 1, 'Задача не добавлена');
+                assert(updated[updated.length - 1].title === 'Тестовая задача', 'Неверное название задачи');
+                assert(updated[updated.length - 1].status === 'not_started', 'Неверный статус');
+            });
+        }
+        
+        // Тест 10: Статусы задач
+        function testTaskStatuses() {
+            test('Обновление статуса задачи', () => {
+                const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+                
+                if (tasks.length > 0) {
+                    const task = tasks[tasks.length - 1];
+                    task.status = 'in_progress';
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    
+                    const updated = JSON.parse(localStorage.getItem('tasks'));
+                    assert(updated[updated.length - 1].status === 'in_progress', 'Статус не обновлен');
+                    
+                    task.status = 'completed';
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    
+                    const updated2 = JSON.parse(localStorage.getItem('tasks'));
+                    assert(updated2[updated2.length - 1].status === 'completed', 'Статус completed не установлен');
+                }
+            });
+        }
+        
+        // Тест 11: Приоритеты задач
+        function testTaskPriorities() {
+            test('Приоритеты задач', () => {
+                const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+                
+                if (tasks.length > 0) {
+                    const validPriorities = ['low', 'medium', 'high'];
+                    const task = tasks[tasks.length - 1];
+                    assert(validPriorities.includes(task.priority), 'Неверный приоритет');
+                }
+            });
+        }
+        
+        // Тест 12: Привязка задач к новичку
+        function testTaskNewcomerBinding() {
+            test('Привязка задач к новичку', () => {
+                const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+                const newcomers = JSON.parse(localStorage.getItem('newcomers') || '[]');
+                
+                if (tasks.length > 0 && newcomers.length > 0) {
+                    const task = tasks[tasks.length - 1];
+                    // Задача может быть привязана к новичку или быть общей (пустой newcomer_id)
+                    assert(task.newcomer_id === '' || newcomers.some(n => n.id === task.newcomer_id), 'Задача привязана к несуществующему новичку');
+                }
+            });
+        }
+        
         async function runAllTests() {
             testResults = [];
             const resultsDiv = document.getElementById('results');
@@ -256,6 +331,18 @@
             await new Promise(resolve => setTimeout(resolve, 50));
             
             testOldDataCleanup();
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            testTaskCreation();
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            testTaskStatuses();
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            testTaskPriorities();
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            testTaskNewcomerBinding();
             
             // Отображение результатов
             let passCount = testResults.filter(t => t.status === 'pass').length;
