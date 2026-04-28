@@ -1,43 +1,126 @@
 # Цифровой Бадди - AI помощник для адаптации новичков
 
-## Описание
-AI-чат-бот для поддержки новичков в первые 90 дней работы. Отслеживает настроение, отвечает на вопросы, сигнализирует HR о проблемах.
+## 🚀 Быстрый старт
 
-## Быстрый старт
-
-### 1. Установка
+### Через Docker (рекомендуется)
 ```bash
-pip install -r requirements.txt
+# Запуск
+docker-compose up -d --build
+
+# Открыть в браузере
+# http://localhost:8501
+
+# Остановка
+docker-compose down
+
+# Логи
+docker-compose logs -f
 ```
 
-### 2. Запуск локально
+### Локально
 ```bash
+pip install -r requirements.txt
 streamlit run app.py
 ```
 
-### 3. Деплой в Streamlit Cloud
-1. Загрузи код в GitHub
-2. Зайди на [share.streamlit.io](https://share.streamlit.io)
-3. Подключи репозиторий
-4. Готово! Получишь ссылку для sharing
+### 🧪 Запуск тестов
+```bash
+python test_full.py      # Все тесты (33 теста)
+python test_tasks.py     # Тесты для задач (6 тестов)
+```
+**33 теста** покрывают все функции: AI, БД, задачи, интеграцию
 
-## Функционал
+## 📖 Описание
+AI-чат-бот для поддержки новичков в первые 90 дней работы. Отслеживает настроение, отвечает на вопросы, сигнализирует HR о проблемах.
+
+## 🎯 Функционал
 
 ### Для новичков:
 - 💬 Чат с AI-бадди
 - 😊 Ежедневная проверка настроения
-- 📅 Проактивные советы по адаптации
+- 📊 История своего настроения
+- 📋 Доска заданий с комментариями
 
 ### Для HR:
+- ➕ Добавление новичков с стартовыми задачами
 - 📊 Дашборд со всеми новичками
-- 📈 Графики настроения
+- 📈 Настроение каждого новичка
 - 🚨 Алерты о проблемах
+- ✏️ Создание/редактирование задач
+- 💬 Просмотр комментариев к задачам
 
-## Технологии
-- Streamlit (Frontend + Backend)
-- SQLite (База данных)
-- HuggingFace transformers (AI)
-- Streamlit Cloud (Бесплатный хостинг)
+## ⚠️ Важные правила
 
-## Лицензия
+**ПЕРЕД изменениями:**
+1. Запусти тесты: `python test_full.py`
+2. Проверь что все проходят
+
+**НИКОГДА не:**
+- Удаляй функции без запроса
+- Игнорируй падающие тесты
+
+Подробно в [DEVELOPMENT_RULES.md](DEVELOPMENT_RULES.md)
+
+## 🛠 Технологии
+- **Frontend:** Streamlit
+- **Backend:** Python 3.11
+- **AI:** AI Gateway (опционально) + fallback
+- **Database:** SQLite
+- **Deployment:** Docker + Docker Compose
+
+## 📁 Структура
+```
+digital-buddy/
+├── app.py              # Главное приложение
+├── models/ai.py        # AI функции
+├── utils/database.py   # Работа с БД
+├── test_full.py        # Все автотесты (27 тестов)
+├── DEVELOPMENT_RULES.md # Правила разработки
+└── README.md          # Этот файл
+```
+
+## Docker Commands
+
+### Запуск всех сервисов:
+```bash
+docker-compose up
+```
+
+### Запуск в фоне:
+```bash
+docker-compose up -d
+```
+
+### Остановка:
+```bash
+docker-compose down
+```
+
+### Пересборка:
+```bash
+docker-compose up --build
+```
+
+## 🔧 AI Gateway (опционально)
+
+Используй свою AI модель:
+```env
+AI_GATEWAY_URL=https://твоя-aigateway.com
+AI_GATEWAY_API_KEY=твой-ключ
+```
+
+## 🐛 Отладка
+
+```bash
+# Логи
+docker-compose logs -f
+
+# Перезапуск
+docker-compose restart
+
+# Полная пересборка
+docker-compose down && docker-compose up -d --build
+```
+
+## 📝 Лицензия
 Internal use only

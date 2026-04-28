@@ -718,21 +718,23 @@
             chatHistory[currentNewcomer.id].push({sender: 'user', message: message, time: new Date().toISOString()});
             saveData();
             
-            // Ответ бадди (разнообразные варианты)
-            setTimeout(() => {
-                let response = getRandomResponse(message);
+            // Добавляем сообщение в AI историю
+            aiBuddy.addMessage(currentNewcomer.id, 'user', message);
+            
+            // Генерируем ответ через AI
+            aiBuddy.generateResponse(message, currentNewcomer.id).then(response => {
                 chatBox.innerHTML += '<div class="message buddy">' + response + '</div>';
                 chatBox.scrollTop = chatBox.scrollHeight;
                 
-                // Сохраняем ответ бадди
+                // Сохраняем ответ
                 chatHistory[currentNewcomer.id].push({sender: 'buddy', message: response, time: new Date().toISOString()});
                 saveData();
-            }, 500);
+            });
             
             chatBox.scrollTop = chatBox.scrollHeight;
         }
         
-        // Получение случайного ответа
+        // Получение ответа (fallback)
         function getRandomResponse(message) {
             const lowerMsg = message.toLowerCase();
             
@@ -804,6 +806,80 @@
             const categoryResponses = responses[category];
             return categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
         }
+        
+        // AI Ассистент (HuggingFace Inference API)
+        class AIBuddy {
+            constructor() {
+                this.api_url = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
+                this.history = {};
+            }
+            
+            async generateResponse(message, newcomerId = 'default') {
+                // Сначала пробуем с AI API
+                const history = this.history[newcomerId] || [];
+                const context = history.slice(-5).map(m => `${m.role}: ${m.content}`).join('\n');
+                
+                const prompt = `Ты - дружелюбный AI-бадди по имени Бадди, который помогает новичкам адаптироваться в компании.
+Твой стиль общения: теплый, поддерживающий, неформальный.
+
+История разговора:
+${context}
+
+Сообщение новичка: ${message}
+
+Твой ответ (на русском языке, кратко, 2-3 предложения):`;
+                
+                try {
+                    const response = await fetch(this.api_url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            inputs: prompt,
+                            parameters: {
+                                max_new_tokens: 150,
+                                temperature: 0.7,
+                                return_full_text: false
+                            }
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (Array.isArray(result) && result.length > 0) {
+                            const generated = result[0].generated_text?.trim();
+                            if (generated) {
+                                this.addMessage(newcomerId, 'assistant', generated);
+                                return generated;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log('AI API error, using fallback:', error);
+                }
+                
+                // Если API не работает, используем fallback
+                return this.getFallbackResponse(message);
+            }
+            
+            addMessage(newcomerId, role, content) {
+                if (!this.history[newcomerId]) {
+                    this.history[newcomerId] = [];
+                }
+                this.history[newcomerId].push({ role, content });
+                
+                // Ограничиваем историю
+                if (this.history[newcomerId].length > 10) {
+                    this.history[newcomerId] = this.history[newcomerId].slice(-10);
+                }
+            }
+            
+            getFallbackResponse(message) {
+                return getRandomResponse(message);
+            }
+        }
+        
+        // Глобальный экземпляр AI
+        const aiBuddy = new AIBuddy();
         
         // Выбрать настроение
         function selectMood(mood) {
